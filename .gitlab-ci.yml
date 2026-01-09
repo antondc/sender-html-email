@@ -1,0 +1,36 @@
+image: node:latest
+
+before_script:
+  - apt-get update -qq
+  - apt-get install -qq git openssh-client
+
+  # Create SSH directory
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+
+  # Start ssh-agent ONCE
+  - eval $(ssh-agent -s)
+
+  # Add GitHub deploy key (base64)
+  - echo "$GITHUB_KEY" | base64 -d > ~/.ssh/id_rsa_github
+  - chmod 600 ~/.ssh/id_rsa_github
+  - ssh-add ~/.ssh/id_rsa_github
+
+  # Disable strict host key checking
+  - echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+
+
+stages:
+  - github_clone
+
+github_clone:
+  stage: github_clone
+  variables:
+    GIT_DEPTH: "0"
+  script:
+    - git fetch --all --tags
+    - git checkout -B "$CI_COMMIT_REF_NAME"
+    - git remote remove github || true
+    - git remote add github "git@github.com:${GITHUB_ACCOUNT}/${GITHUB_PROJECT}.git"
+    - git push github --all
+    - git push github --tags
