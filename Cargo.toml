@@ -1,0 +1,10 @@
+[package]
+name = "html-email-sender"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dotenv = "0.15.0"
+lettre = "0.10"
+csv = "1.1"
+clap = { version = "4.0.26", features = ["derive"] }
